@@ -1,10 +1,16 @@
-import type { Metadata } from 'next'
-import './globals.css'
+import type React from "react"
+import type { Metadata } from "next"
+import { Inter } from "next/font/google"
+import "./globals.css"
+import { CartProvider } from "@/context/cart-context"
+import { Providers } from "./providers"
+
+const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
-  generator: 'v0.dev',
+  title: "Booksly - Online Bookstore",
+  description: "Find your next favorite book at Booksly",
+    generator: 'v0.dev'
 }
 
 export default function RootLayout({
@@ -14,7 +20,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className={inter.className}>
+        <CartProvider>
+          <Providers>{children}</Providers>
+        </CartProvider>
+      </body>
     </html>
   )
 }

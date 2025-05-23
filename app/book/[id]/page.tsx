@@ -1,9 +1,15 @@
+"use client"
+
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowLeft, Heart, ShoppingCart, Star } from "lucide-react"
+import { useState } from "react"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import MobileNav from "@/components/mobile-nav"
+import { getBookById } from "@/lib/data"
+import { useCart } from "@/context/cart-context"
 
 interface BookPageProps {
   params: {
@@ -12,20 +18,30 @@ interface BookPageProps {
 }
 
 export default function BookPage({ params }: BookPageProps) {
-  // In a real app, you would fetch book data based on the ID
-  const book = {
-    id: params.id,
-    title: "The Midnight Library",
-    author: "Matt Haig",
-    price: 12.99,
-    rating: 4.5,
-    coverUrl: "/placeholder.svg?height=400&width=260",
-    description:
-      "Between life and death there is a library, and within that library, the shelves go on forever. Every book provides a chance to try another life you could have lived. To see how things would be if you had made other choices... Would you have done anything different, if you had the chance to undo your regrets?",
-    pages: 304,
-    published: "August 13, 2020",
-    publisher: "Viking",
-    isbn: "9780525559474",
+  const book = getBookById(params.id)
+  const { addToCart } = useCart()
+  const [quantity, setQuantity] = useState(1)
+
+  if (!book) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-brand-light">
+        <h1 className="text-2xl font-bold text-brand-DEFAULT">Book not found</h1>
+        <p className="text-muted-foreground mb-4">The book you're looking for doesn't exist.</p>
+        <Button asChild>
+          <Link href="/">Back to Home</Link>
+        </Button>
+      </div>
+    )
+  }
+
+  const handleAddToCart = () => {
+    addToCart(book.id, quantity)
+    toast.success(`Added "${book.title}" to cart`)
+  }
+
+  const handleBuyNow = () => {
+    addToCart(book.id, quantity)
+    window.location.href = "/cart"
   }
 
   return (
@@ -66,7 +82,7 @@ export default function BookPage({ params }: BookPageProps) {
               .map((_, i) => (
                 <Star
                   key={i}
-                  className={`h-4 w-4 ${i < Math.floor(book.rating) ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`}
+                  className={`h-4 w-4 ${i < Math.floor(book.rating || 0) ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`}
                 />
               ))}
             <span className="ml-1 text-sm">{book.rating}</span>
@@ -74,12 +90,31 @@ export default function BookPage({ params }: BookPageProps) {
 
           <p className="text-lg font-bold mb-4">{Math.round(book.price * 1000).toLocaleString("en-US")} S.P</p>
 
+          <div className="flex items-center mb-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
+              className="h-8 w-8 p-0"
+            >
+              -
+            </Button>
+            <span className="mx-3 text-sm font-medium">{quantity}</span>
+            <Button variant="outline" size="sm" onClick={() => setQuantity((prev) => prev + 1)} className="h-8 w-8 p-0">
+              +
+            </Button>
+          </div>
+
           <div className="flex gap-3 w-full">
-            <Button className="flex-1 bg-brand-DEFAULT hover:bg-brand-medium">
+            <Button className="flex-1 bg-brand-DEFAULT hover:bg-brand-medium" onClick={handleAddToCart}>
               <ShoppingCart className="h-4 w-4 mr-2" />
               Add to Cart
             </Button>
-            <Button variant="outline" className="flex-1 border-brand-DEFAULT text-brand-DEFAULT hover:bg-brand-pale">
+            <Button
+              variant="outline"
+              className="flex-1 border-brand-DEFAULT text-brand-DEFAULT hover:bg-brand-pale"
+              onClick={handleBuyNow}
+            >
               Buy Now
             </Button>
           </div>
@@ -104,6 +139,13 @@ export default function BookPage({ params }: BookPageProps) {
 
             <div className="text-muted-foreground">ISBN</div>
             <div>{book.isbn}</div>
+
+            {book.series && (
+              <>
+                <div className="text-muted-foreground">Series</div>
+                <div>{book.series}</div>
+              </>
+            )}
           </div>
         </div>
       </main>

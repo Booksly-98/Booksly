@@ -3,9 +3,11 @@
 import Image from "next/image"
 import Link from "next/link"
 import { ShoppingCart } from "lucide-react"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { useCart } from "@/context/cart-context"
 
 interface BookCardProps {
   id: string
@@ -17,6 +19,13 @@ interface BookCardProps {
 }
 
 export default function BookCard({ id, title, author, price, coverUrl, className }: BookCardProps) {
+  const { addToCart } = useCart()
+
+  const handleAddToCart = () => {
+    addToCart(id, 1)
+    toast.success(`Added "${title}" to cart`)
+  }
+
   return (
     <div className={cn("flex flex-col", className)}>
       <Link href={`/book/${id}`} className="group">
@@ -35,7 +44,7 @@ export default function BookCard({ id, title, author, price, coverUrl, className
       <Button
         size="sm"
         className="mt-1 w-full text-xs bg-brand-DEFAULT hover:bg-brand-medium text-black"
-        onClick={() => console.log(`Added ${title} to cart`)}
+        onClick={handleAddToCart}
       >
         <ShoppingCart className="h-3 w-3 mr-1" />
         Add to Cart
